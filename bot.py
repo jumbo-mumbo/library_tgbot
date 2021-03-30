@@ -66,7 +66,7 @@ class AdminAccess(BoundFilter):
         super().__init__()
 
     async def check(self, message):
-        if message.from_user.id in self.is_admin:
+        if str(message.from_user.id) in str(self.is_admin):
             return message.from_user.id
         else:
             await message.answer('Access Denied')
