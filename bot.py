@@ -1,4 +1,4 @@
-from config import TOKEN,ADMIN_ID
+#from config import TOKEN,ADMIN_ID
 
 from aiogram import Bot,Dispatcher,executor,types
 from aiogram.utils.callback_data import CallbackData
@@ -9,19 +9,20 @@ from aiogram.dispatcher.filters import BoundFilter, Text
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State,StatesGroup
 
-from category import get_subjects, get_courses, get_books, get_subjects_all
-import db_settings
+from category import get_subjects, get_courses, get_books
+
 import typing
 import logging
 import sqlite3
-
-
+import db_settings
+import os
 
 con = sqlite3.connect('db.sqlite')
 cur = con.cursor()
 
 
-API_TOKEN = TOKEN
+API_TOKEN = os.environ.get('BOT_TOKEN')
+ADMIN_ID = [os.environ.get('ADMIN_ID')]
 
 #Настройка логгирования
 logging.basicConfig(level=logging.INFO)
@@ -99,6 +100,9 @@ async def show_courses(message: types.Message):
     await message.answer('Выберите курс: ',reply_markup=markup_courses)
 
 # НАПИСАТЬ ФУНКЦИЮ ПОМОЩИ !!!!!!!!!!!!!!!!!!!!!!!
+@dp.message_handler(commands=['help'])
+async def help_command(message:types.Message):
+    await message.answer("Появились проблемы или у вас дома завелся призрак?\n Пишите ему: @awesometzar")
 
 #Функуция которая выводит кнопки для выбора предмета
 @dp.callback_query_handler(courses_cd.filter(action='to_subject'))
