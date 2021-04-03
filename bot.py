@@ -24,8 +24,6 @@ cur = con.cursor()
 API_TOKEN = os.environ.get('BOT_TOKEN')
 ADMIN_ID = [os.environ.get('ADMIN_ID')]
 
-#API_TOKEN = '1679649972:AAHInJNAimusPtkrBlERbfvzY6YZE23sHMg'
-#ADMIN_ID = [465059610]
 
 #Настройка логгирования
 logging.basicConfig(level=logging.INFO)
@@ -103,11 +101,11 @@ async def show_courses(message: types.Message):
     markup_courses = get_courses(courses,courses_cd,action)
     await message.answer('Выберите курс: ',reply_markup=markup_courses)
 
-# НАПИСАТЬ ФУНКЦИЮ ПОМОЩИ !!!!!!!!!!!!!!!!!!!!!!!
+
 @dp.message_handler(commands=['help'])
 async def help_command(message:types.Message):
     await message.answer("Появились проблемы или у вас дома завелся призрак?\n\n"
-                         "Пишите ему: @awesometzar")
+                         "Пишите ему: @somename")
 
 #Функуция которая выводит кнопки для выбора предмета
 @dp.callback_query_handler(courses_cd.filter(action='to_subject'))
