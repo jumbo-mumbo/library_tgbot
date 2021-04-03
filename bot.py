@@ -161,11 +161,21 @@ async def query_back_to_courses(query):
 
 @dp.message_handler(commands=['change_item'],is_admin=ADMIN_ID)
 async def input_subject_name(message: types.Message):
-    await message.answer("Введи название предмета:")
+    await message.answer("Введи название предмета:\nОтменить:/cancel")
     await NameForm.subject_name.set()
 
-#@dp.message_handler(state='*', commands='cancel')
-#@dp.message_handler(Text(equals='cancel', ignore_case=True), state='*')
+@dp.message_handler(state='*', commands='cancel')
+@dp.message_handler(Text(equals='cancel', ignore_case=True), state='*')
+async def cancel_handler(message:types.Message, state: FSMContext):
+    current_state = await state.get_state()
+    if current_state is None:
+        return
+
+    logging.info('Cancelling state %r', current_state)
+    # Cancel state and inform user about it
+    await state.finish()
+    # And remove keyboard (just in case)
+    await message.answer('Заполнение формы отменено.')
 
 @dp.callback_query_handler(cancel_action.filter(action='cancel'),state='*')
 async def cancel_handler(query: types.CallbackQuery, state: FSMContext):
@@ -285,7 +295,7 @@ async def modify_subject(query :types.CallbackQuery, callback_data: typing.Dict[
 
 @dp.message_handler(commands=['change_book'], is_admin=ADMIN_ID)
 async def document_name(message: types.Message, state: FSMContext):
-    await message.answer('Введите название файла:')
+    await message.answer('Введите название файла:\nОтменить:/cancel')
     await NameForm.book_name.set()
 
 @dp.message_handler(state=NameForm.book_name)
