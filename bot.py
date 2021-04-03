@@ -24,6 +24,9 @@ cur = con.cursor()
 API_TOKEN = os.environ.get('BOT_TOKEN')
 ADMIN_ID = [os.environ.get('ADMIN_ID')]
 
+#API_TOKEN = '1679649972:AAHInJNAimusPtkrBlERbfvzY6YZE23sHMg'
+#ADMIN_ID = [465059610]
+
 #Настройка логгирования
 logging.basicConfig(level=logging.INFO)
 #Инициализация Бота и Диспетчера
@@ -47,7 +50,7 @@ courses = (
 courses_cd = CallbackData('course','id','action','name')
 subjects_cd = CallbackData('subject','id','action','name')
 book_cd = CallbackData('book','action','name')
-
+cancel_action = CallbackData('cancel','action')
 # Callback data for choices
 subject_choice_action = CallbackData('subject_choice','action')
 book_choice_action = CallbackData('book_choice','action')
@@ -85,11 +88,12 @@ class NameForm(StatesGroup):
 
 """Основные команды работы с ботом для пользователя!!!!"""
 
+
 @dp.message_handler(commands=['start'])
 async def start_command(message: types.Message):
     await message.answer(
-        'Привет, добро пожаловать в наш скромный бот.\n'
-        '/help - Помощь в случае ошибок, и т.д.\n'
+        'Привет, добро пожаловать в наш скромный бот.\n\n'
+        '/help - Помощь в случае ошибок, и т.д.\n\n'
         '/show - Показать разделы библиотеки')
 
 # Выводит курсы
@@ -102,7 +106,8 @@ async def show_courses(message: types.Message):
 # НАПИСАТЬ ФУНКЦИЮ ПОМОЩИ !!!!!!!!!!!!!!!!!!!!!!!
 @dp.message_handler(commands=['help'])
 async def help_command(message:types.Message):
-    await message.answer("Появились проблемы или у вас дома завелся призрак?\n Пишите ему: @awesometzar")
+    await message.answer("Появились проблемы или у вас дома завелся призрак?\n\n"
+                         "Пишите ему: @awesometzar")
 
 #Функуция которая выводит кнопки для выбора предмета
 @dp.callback_query_handler(courses_cd.filter(action='to_subject'))
@@ -159,9 +164,11 @@ async def input_subject_name(message: types.Message):
     await message.answer("Введи название предмета:")
     await NameForm.subject_name.set()
 
-@dp.message_handler(state='*', commands='cancel')
-@dp.message_handler(Text(equals='cancel', ignore_case=True), state='*')
-async def cancel_handler(message: types.Message, state: FSMContext):
+#@dp.message_handler(state='*', commands='cancel')
+#@dp.message_handler(Text(equals='cancel', ignore_case=True), state='*')
+
+@dp.callback_query_handler(cancel_action.filter(action='cancel'),state='*')
+async def cancel_handler(query: types.CallbackQuery, state: FSMContext):
     current_state = await state.get_state()
     if current_state is None:
         return
@@ -170,10 +177,13 @@ async def cancel_handler(message: types.Message, state: FSMContext):
     # Cancel state and inform user about it
     await state.finish()
     # And remove keyboard (just in case)
-    await message.reply('Cancelled.', reply_markup=types.ReplyKeyboardRemove())
+    await query.message.edit_text('Заполнение формы отменено.')
 
 
-#
+
+
+
+
 @dp.message_handler(state=NameForm.subject_name)
 async def choice_action(message: types.Message,state: FSMContext):
     choices = (
@@ -188,6 +198,9 @@ async def choice_action(message: types.Message,state: FSMContext):
 
     markup.add(
         types.InlineKeyboardButton('-Hide-', callback_data=subject_choice_action.new(action='hide_choices')))
+
+    markup.add(
+        types.InlineKeyboardButton('Отменить', callback_data=cancel_action.new(action='cancel')))
 
     async with state.proxy() as data:
         data['subject_name'] = message.text
@@ -213,18 +226,22 @@ async def pick_course(query: types.CallbackQuery,state: FSMContext,callback_data
         context = 'удалить'
 
     markup_courses = get_courses(courses, courses_cd, action)
+    markup_courses.add(types.InlineKeyboardButton('Отменить', callback_data=cancel_action.new(action='cancel')))
 
     async with state.proxy() as data:
         subject_name = data['subject_name']
-        await query.message.answer(f'Вы хотите {context} - {subject_name} !',reply_markup=markup_courses)
+        await query.message.edit_text(f'Вы хотите {context} - {subject_name} !',reply_markup=markup_courses)
 
 
 #кнопка сокрытия курсов
-@dp.callback_query_handler(subject_choice_action.filter(action='hide_choices'))
+
 @dp.callback_query_handler(courses_cd.filter(action='hide_courses'))
 async def query_hide_the_courses(query):
-    await query.message.edit_text('Курсы скрыты')
+    await query.message.edit_text('Курсы скрыты\nОткрыть снова /show')
 
+@dp.callback_query_handler(subject_choice_action.filter(action='hide_choices'))
+async def query_hide_the_courses_form(query):
+    await query.message.edit_text('Курсы скрыты')
 
 @dp.callback_query_handler(courses_cd.filter(action=['add_subject','del_subject']),state=NameForm.subject_name)
 async def modify_subject(query :types.CallbackQuery, callback_data: typing.Dict[str,str] ,state: FSMContext):
@@ -238,16 +255,24 @@ async def modify_subject(query :types.CallbackQuery, callback_data: typing.Dict[
         if action == 'add_subject':
             if db_settings.is_subject_exist(subject_name, sbj_crs_id) == False:
                 db_settings.add_subject(subject_name, sbj_crs_id)
-                result = f'{subject_name} добавлен в {sbj_crs_id} курс'
+                result = f'{subject_name} добавлен в {sbj_crs_id} курс\n' \
+                         f'Показать: /show\n' \
+                         f'Повторить: /change_item'
             else:
-                result = f'Предмет с таким названием уже существует в {sbj_crs_id} курсе'
+                result = f'Предмет с таким названием уже существует в {sbj_crs_id} курсе\n' \
+                         f'Показать: /show\n' \
+                         f'Повторить: /change_item'
 
         if action == 'del_subject':
             if db_settings.is_subject_exist(subject_name,sbj_crs_id) == True:
                 db_settings.del_subject(subject_name, sbj_crs_id)
-                result = f'{subject_name} удален из {sbj_crs_id} курс'
+                result = f'{subject_name} удален из {sbj_crs_id} курс\n' \
+                         f'Показать: /show\n' \
+                         f'Повторить: /change_item'
             else:
-                result = f'Предмет {subject_name} не существует в {sbj_crs_id}'
+                result = f'Предмет {subject_name} не существует в {sbj_crs_id}\n' \
+                         f'Показать: /show\n' \
+                         f'Повторить: /change_item'
 
 
     await state.finish()
@@ -278,6 +303,8 @@ async def choice_book_action(message: types.Message,state: FSMContext):
     markup.add(
         types.InlineKeyboardButton('-Hide-', callback_data=book_choice_action.new(action='hide_choices')))
 
+    markup.add(types.InlineKeyboardButton('Отменить', callback_data=cancel_action.new(action='cancel')))
+
     async with state.proxy() as data:
         data['book_name'] = message.text
 
@@ -296,6 +323,7 @@ async def show_courses(query: types.CallbackQuery,callback_data: typing.Dict[str
         action = 'del_book_to_subject'
 
     markup_courses = get_courses(courses,courses_cd,action)
+    markup_courses.add(types.InlineKeyboardButton('Отменить', callback_data=cancel_action.new(action='cancel')))
 
     await query.message.edit_text('Выберите курс: ',reply_markup=markup_courses)
 
@@ -357,7 +385,10 @@ async def add_book(query :types.CallbackQuery,callback_data: typing.Dict[str,str
             result = f"Добавьте файл в {subject_name}:"
 
         else:
-            result = f"Книга с таким названием уже существует в {subject_name}\n"
+            result = f"Книга с таким названием уже существует в {subject_name}\n" \
+                         f'Показать: /show\n' \
+                         f'Повторить: /change_item'
+
             await state.finish()
 
     await query.message.answer(result)
@@ -372,13 +403,16 @@ async def add_file(message: types.Message, state: FSMContext):
 
         file_info = await bot.get_file(document_id)
         fi = file_info.file_path
-        url = f'https://api.telegram.org/file/bot{TOKEN}/{fi}'
+        url = f'https://api.telegram.org/file/bot{API_TOKEN}/{fi}'
         #db_settings.load_book(url, name)
 
         db_settings.add_book(book_name, document_id,subject_name)
 
 
-        await message.answer(f"Файл {book_name} успешно сохранен в {subject_name} \n также доступен по ссылке: {url}")
+        await message.answer(f"Файл {book_name} успешно сохранен в {subject_name}\n"
+                             f"Посмотреть: /show\n"
+                             f"Повторить: /change_book \n\n "
+                             f"Также доступен по ссылке: {url}")
 
     await state.finish()
 
@@ -392,9 +426,13 @@ async def delete_book(query :types.CallbackQuery,callback_data: typing.Dict[str,
         name = data['book_name']
         if db_settings.is_book_exist(name,subject_name) == True:
             db_settings.del_book(name,subject_name)
-            result = f"Файл {name} удален из {subject_name}"
+            result = f"Файл {name} удален из {subject_name}\n" \
+                     f"Посмотреть: /show\n" \
+                     f"Повторить: /change_book"
         else:
-            result = f"Книги с названием {name} не существует в {subject_name}"
+            result = f"Книги с названием {name} не существует в {subject_name}\n" \
+                         f'Показать: /show\n' \
+                         f'Повторить: /change_book'
 
     await query.message.answer(result)
     await state.finish()
