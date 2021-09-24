@@ -1,10 +1,15 @@
 aiogram==2.11.2
 aiohttp==3.7.3
+<<<<<<< HEAD
+=======
+alembic==1.7.1
+>>>>>>> e0c052e31b889a8b8100c96f764a416e5af2ea37
 async-timeout==3.0.1
 attrs==20.3.0
 Babel==2.9.0
 certifi==2020.12.5
 chardet==3.0.4
+<<<<<<< HEAD
 idna==2.10
 multidict==5.1.0
 pytz==2021.1
@@ -12,3 +17,19 @@ requests==2.25.1
 typing-extensions==3.7.4.3
 urllib3==1.26.3
 yarl==1.6.3
+=======
+greenlet==1.1.1
+idna==2.10
+importlib-resources==5.2.2
+Mako==1.1.5
+MarkupSafe==2.0.1
+multidict==5.1.0
+psycopg2-binary==2.9.1
+pytz==2021.1
+requests==2.25.1
+SQLAlchemy==1.4.23
+typing-extensions==3.7.4.3
+urllib3==1.26.3
+yarl==1.6.3
+zipp==3.5.0
+>>>>>>> e0c052e31b889a8b8100c96f764a416e5af2ea37
