@@ -1,9 +1,6 @@
 aiogram==2.11.2
 aiohttp==3.7.3
-<<<<<<< HEAD
-=======
 alembic==1.7.1
->>>>>>> e0c052e31b889a8b8100c96f764a416e5af2ea37
 async-timeout==3.0.1
 attrs==20.3.0
 Babel==2.9.0
@@ -17,7 +14,6 @@ requests==2.25.1
 typing-extensions==3.7.4.3
 urllib3==1.26.3
 yarl==1.6.3
-=======
 greenlet==1.1.1
 idna==2.10
 importlib-resources==5.2.2
@@ -32,4 +28,4 @@ typing-extensions==3.7.4.3
 urllib3==1.26.3
 yarl==1.6.3
 zipp==3.5.0
->>>>>>> e0c052e31b889a8b8100c96f764a416e5af2ea37
+
