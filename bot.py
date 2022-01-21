@@ -226,8 +226,6 @@ async def change_item(query: types.CallbackQuery, callback_data: typing.Dict[str
 
 @dp.callback_query_handler(courses_cd.filter(action=['add_item']))
 async def add_item(query: types.CallbackQuery, callback_data: typing.Dict[str,str]):
-    global course_item_id
-    global course_item_name
     course_item_name = callback_data['name']
     course_item_id = callback_data['id']
     await query.message.edit_text("Введите название предмета:\nОтменить:/cancel")
@@ -355,8 +353,6 @@ async def delete_book(query: types.CallbackQuery, callback_data: typing.Dict[str
 
 @dp.callback_query_handler(item_cd.filter(action=['add_book']))
 async def add_book_to_item(query: types.CallbackQuery, callback_data: typing.Dict[str,str]):
-    global item_book_id
-    global item_book_name
     item_book_name = callback_data['name']
     item_book_id = callback_data['id']
     await query.message.edit_text("Прикрепите нужный файл:\nОтменить:/cancel")
